@@ -6,6 +6,7 @@ import javax.transaction.Transactional;
 
 import br.usjt.congnitive.spring.dao.ClientDAO;
 import br.usjt.congnitive.spring.model.Client;
+import br.usjt.congnitive.spring.model.Face;
 
 public class ClientServiceImpl implements ClientService {
 
@@ -17,8 +18,8 @@ public class ClientServiceImpl implements ClientService {
 	
 	@Override
 	@Transactional
-	public void addClient(Client c) {
-		this.clientDAO.addClient(c);
+	public void addClientFace(Client c, Face f) {
+		this.clientDAO.addClientFace(c, f);
 	}
 	
 	@Override
@@ -44,5 +45,11 @@ public class ClientServiceImpl implements ClientService {
 	@Transactional
 	public void removeClient(int id) {
 		this.clientDAO.removeClient(id);
+	}
+
+	@Override
+	@Transactional
+	public Face getClientsByPersistedFaceId(String persistedFaceId) {
+		return this.clientDAO.getClientsByPersistedFaceId(persistedFaceId);
 	}
 }

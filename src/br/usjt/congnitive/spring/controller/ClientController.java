@@ -5,14 +5,16 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,16 +34,7 @@ public class ClientController {
 	
 	private ClientService clientService;
 	private FaceService faceService;
-	
-	
-	@RequestMapping(value = "/home", method = RequestMethod.GET)
-	public String Home() {
-		
-		this.faceService.Detect(new File("C:\\\\Projects\\\\faces-azure\\\\menina.jpg"), true, false);
-		
-		
-		return "home";
-	}
+	private List<Face> facesBanco;
 
 	@Autowired(required=true)
 	@Qualifier(value="clientService")
@@ -61,84 +54,83 @@ public class ClientController {
 		model.addAttribute("listClients", this.clientService.listClients());
 		//return "client";
 	}
-	
-	
-	@RequestMapping(value = "/curriculo-test", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public String teste(@RequestBody String json) {
-		
-		Gson gson = new Gson(); // Or use new GsonBuilder().create();
-		Face target2 = gson.fromJson(json, Face.class); // deserializes json into target2
 
-        return null;
-    }
-
-	
-	
 	//For add and update client both
 	@RequestMapping(value= "/client/add", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public String addClient(@RequestBody String json){
 		
-		Gson gson = new Gson(); // Or use new GsonBuilder().create();
-		Client c = gson.fromJson(json, Client.class); // deserializes json into target2
+		Client c = new Gson().fromJson(json, Client.class); 
+		Face f = new Face();
+
+        Iterator<Face> carrosAsIterator = c.getFace().iterator();
+        while (carrosAsIterator.hasNext()){
+               f = carrosAsIterator.next();
+        }
+        
+		String base64Image = f.getBase64image().split(",")[1];
 		
-//		String base64Image = c.getFace().getBase64image().split(",")[1];
-//		byte[] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(base64Image);
-//		Path destinationFile = Paths.get("C:\\Projects\\faces-azure", "myImage2.jpg");
-//		try {
-//			Files.write(destinationFile, imageBytes);
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//		
-//		c.setCpf("44539668");
-//		c.setEmail("joao@gmail.com");
-//		c.setNome("Jonas Macedo");
-//		c.setRg("348602349");
-//		c.setTelefone("119404");
-//		
-//		this.faceService.AddFaceToFaceList(1, new File("C:\\\\Projects\\\\faces-azure\\\\myImage2.jpg"), c.getNome());
-//		
-//		c.setCpf("44539668");
-//		c.setEmail("joao@gmail.com");
-//		c.setNome("Jonas Macedo");
-//		c.setRg("348602349");
-//		c.setTelefone("119404");
+		byte[] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(base64Image);
+		String path = "C:\\Projects\\faces-azure\\"+ c.getCpf() +".jpg";
+		Path destinationFile = Paths.get(path);
 		
+		try {
+			Files.write(destinationFile, imageBytes);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		Face faceAzure = this.faceService.AddFaceToFaceList(new File(path), c.getNome());
+		f.setPersistedFaceId(faceAzure.getPersistedFaceId());
+		f.setCliente(c);
 		
 		if(c.getId() == 0){
 			//new client, add it
-			this.clientService.addClient(c);
+			this.clientService.addClientFace(c, f);
 		}else{
 			//existing client, call update
 			this.clientService.updateClient(c);
 		}
 		
 		return json;
-		
-		//return "redirect:/clients";
-		
 	}
-	
-	
-	@RequestMapping(value= "/client/detect", method = RequestMethod.POST)
-	public void detectClient(@ModelAttribute("face") Face f){
+
+	@RequestMapping(value= "/client/detect", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+	public @ResponseBody Client detectClient(@RequestBody String json){
+		
+		Face f = new Gson().fromJson(json, Face.class); 
 		
 		String base64Image = f.getBase64image().split(",")[1];
 		byte[] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(base64Image);
+		String path = "C:\\Projects\\faces-azure\\myImage.jpg";
+		Path destinationFile = Paths.get(path);
 		
-		
-		
-		Path destinationFile = Paths.get("C:\\Projects\\faces-azure", "myImage2.jpg");
 		try {
 			Files.write(destinationFile, imageBytes);	
-			this.faceService.AddFaceToFaceList(1, new File("C:\\\\Projects\\\\faces-azure\\\\myImage2.jpg"), "imagemTeste");
+			String faceId = this.faceService.Detect(new File(path), true, false); 
+			
+			//Chamar FindSimilar
+			List<Face> facesFindSimilar = this.faceService.FindSimilar(faceId, 10);
+			Client client = new Client();
+			Set<Face> facesBanco = new HashSet<Face>();
+			
+			for (Face face : facesFindSimilar) {
+				Face faceBanco = new Face();
+				faceBanco = this.clientService.getClientsByPersistedFaceId(face.getPersistedFaceId());
+				faceBanco.setConfidence(face.getConfidence());
+				client = this.clientService.getClientById(faceBanco.getCliente().getId());
+				facesBanco.add(faceBanco);
+			}
+			client.setFace(facesBanco);
+			
+ 			return client;
+			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		return null;
 	}
-	
 	
 	@RequestMapping("/remove/{id}")
     public void removeClient(@PathVariable("id") int id){

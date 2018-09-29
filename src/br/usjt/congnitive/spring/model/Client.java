@@ -1,12 +1,18 @@
 package br.usjt.congnitive.spring.model;
+import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import javax.persistence.Transient;
+
+import org.hibernate.annotations.Proxy;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /***
  * 
@@ -15,6 +21,7 @@ import javax.persistence.Transient;
  */
 @Entity
 @Table(name="cliente")
+@Proxy(lazy = false)
 public class Client {
 	
 	@Id
@@ -31,6 +38,21 @@ public class Client {
 	private String telefone;
 	
 	private String email;
+	
+//	@OneToMany(mappedBy = "cliente", targetEntity = Face.class, fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+//	private List<Face>  face;
+	
+	@OneToMany(mappedBy="cliente", fetch = FetchType.LAZY)
+	@JsonIgnore
+    private Set<Face> faces;
+	
+	public Set<Face> getFace() {
+		return faces;
+	}
+
+	public void setFace(Set<Face> faces) {
+		this.faces = faces;
+	}
 
 	public int getId() {
 		return id;
