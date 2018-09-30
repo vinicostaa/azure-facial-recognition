@@ -75,6 +75,10 @@ public class ClientDAOImpl implements ClientDAO {
 		Query query = session.createQuery("from Face where persistedFaceId = :id ");
 		query.setParameter("id", persistedFaceId);
 		List<Face> listFaces = query.list();
-		return listFaces.get(0);
+		if(listFaces.size() > 0) {
+			return listFaces.get(0);
+		} else {
+			return null;
+		}
 	}
 }

@@ -70,7 +70,7 @@ public class ClientController {
 		String base64Image = f.getBase64image().split(",")[1];
 		
 		byte[] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(base64Image);
-		String path = "C:\\Projects\\faces-azure\\"+ c.getCpf() +".jpg";
+		String path = "C:\\Projects\\cognitive-services-pi\\src\\assets\\img\\faces\\"+ c.getCpf() +".jpg";
 		Path destinationFile = Paths.get(path);
 		
 		try {
@@ -95,7 +95,7 @@ public class ClientController {
 	}
 
 	@RequestMapping(value= "/client/detect", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
-	public @ResponseBody Client detectClient(@RequestBody String json){
+	public @ResponseBody List<Client> detectClient(@RequestBody String json){
 		
 		Face f = new Gson().fromJson(json, Face.class); 
 		
@@ -110,19 +110,25 @@ public class ClientController {
 			
 			//Chamar FindSimilar
 			List<Face> facesFindSimilar = this.faceService.FindSimilar(faceId, 10);
-			Client client = new Client();
-			Set<Face> facesBanco = new HashSet<Face>();
+			List<Client> clients = new ArrayList<Client>();
+			
 			
 			for (Face face : facesFindSimilar) {
+				Set<Face> facesBanco = new HashSet<Face>();
 				Face faceBanco = new Face();
 				faceBanco = this.clientService.getClientsByPersistedFaceId(face.getPersistedFaceId());
+				if(faceBanco == null) {
+					continue;
+				}
 				faceBanco.setConfidence(face.getConfidence());
-				client = this.clientService.getClientById(faceBanco.getCliente().getId());
+				Client client = this.clientService.getClientById(faceBanco.getCliente().getId());
 				facesBanco.add(faceBanco);
+				client.setFace(facesBanco);
+				clients.add(client);
 			}
-			client.setFace(facesBanco);
+			//client.setFace(facesBanco);
 			
- 			return client;
+ 			return clients;
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
