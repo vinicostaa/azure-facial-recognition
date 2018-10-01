@@ -11,6 +11,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import javax.xml.bind.DatatypeConverter;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
@@ -70,10 +72,11 @@ public class ClientController {
 		String base64Image = f.getBase64image().split(",")[1];
 		
 		byte[] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(base64Image);
-		String path = "C:\\Projects\\cognitive-services-pi\\src\\assets\\img\\faces\\"+ c.getCpf() +".jpg";
+		String path = "C:\\\\Projects\\\\faces-azure\\\\"+ c.getCpf() +".jpg";
 		Path destinationFile = Paths.get(path);
 		
 		try {
+			//salvando
 			Files.write(destinationFile, imageBytes);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -82,6 +85,7 @@ public class ClientController {
 		Face faceAzure = this.faceService.AddFaceToFaceList(new File(path), c.getNome());
 		f.setPersistedFaceId(faceAzure.getPersistedFaceId());
 		f.setCliente(c);
+		f.setPath(path);
 		
 		if(c.getId() == 0){
 			//new client, add it
@@ -121,12 +125,13 @@ public class ClientController {
 					continue;
 				}
 				faceBanco.setConfidence(face.getConfidence());
+				String base64 = DatatypeConverter.printBase64Binary(Files.readAllBytes(Paths.get(faceBanco.getPath())));
+				faceBanco.setBase64image("data:image/png;base64,"+base64);
 				Client client = this.clientService.getClientById(faceBanco.getCliente().getId());
 				facesBanco.add(faceBanco);
 				client.setFace(facesBanco);
 				clients.add(client);
 			}
-			//client.setFace(facesBanco);
 			
  			return clients;
 			

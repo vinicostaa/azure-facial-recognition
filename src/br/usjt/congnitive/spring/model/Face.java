@@ -23,6 +23,8 @@ public class Face {
 
 	private String persistedFaceId;
 	
+	private String path;
+	
 	@Transient
 	private double confidence;
 
@@ -39,6 +41,14 @@ public class Face {
 	
 	
 	
+	public String getPath() {
+		return path;
+	}
+
+	public void setPath(String path) {
+		this.path = path;
+	}
+
 	public double getConfidence() {
 		return confidence;
 	}
