@@ -62,6 +62,14 @@
 		<beans:property name="sessionFactory"
 			ref="hibernate4AnnotatedSessionFactory" />
 	</beans:bean>
+
+	<beans:bean id="faceDAO"
+		class="br.usjt.congnitive.spring.dao.FaceDAOImpl">
+		<beans:property name="sessionFactory"
+			ref="hibernate4AnnotatedSessionFactory" />
+	</beans:bean>
+
+
 	<beans:bean id="clientService"
 		class="br.usjt.congnitive.spring.service.ClientServiceImpl">
 		<beans:property name="clientDAO" ref="clientDAO"></beans:property>
@@ -69,7 +77,7 @@
 
 	<beans:bean id="faceService"
 		class="br.usjt.congnitive.spring.service.FaceServiceImpl">
-		<!-- <beans:property name="faceDAO" ref="clientDAO"></beans:property> -->
+		<beans:property name="faceDAO" ref="faceDAO"></beans:property>
 	</beans:bean>
 
 	<context:component-scan

@@ -28,13 +28,14 @@ public class FaceServiceImpl implements FaceService {
 
 	private final String DEFAULT_API_ROOT = "https://brazilsouth.api.cognitive.microsoft.com/face/v1.0";
 	private final String FindSimilarsQuery = "findsimilars";
-	private final String faceListId = "pi-usjt";
+	private final String personGroupId = "pi-grupo-2-usjt";
 	private final String DetectQuery = "detect";
 	private final String FaceListsQuery = "facelists";
 	private final String PersistedFacesQuery = "persistedfaces";
 	private final String subscriptionKey = "849ef8884bb04ca48e71abb5af9d5541";
 	
 	private FaceDAO faceDAO;
+	
 
 	public void setFaceDAO(FaceDAO faceDAO) {
 		this.faceDAO = faceDAO;
@@ -83,7 +84,7 @@ public class FaceServiceImpl implements FaceService {
 			// Request body
 			JSONObject json = new JSONObject();
 			json.put("faceId", faceId.toString());
-			json.put("faceListId", this.faceListId);
+			json.put("faceListId", this.personGroupId);
 			json.put("maxNumOfCandidatesReturned", maxNumOfCandidatesReturned);
 			json.put("mode", "matchPerson");
 
@@ -113,8 +114,8 @@ public class FaceServiceImpl implements FaceService {
 
 		try {
 			// Parameters and Headers
-			URIBuilder builder = new URIBuilder(DEFAULT_API_ROOT + "/" + FaceListsQuery + "/" + this.faceListId + "/"
-					+ PersistedFacesQuery + "?userData=" + userData.replaceAll("\\s+", ""));
+			URIBuilder builder = new URIBuilder(DEFAULT_API_ROOT + "/" + "persongroups" + "/" + this.personGroupId + "/"+
+				"persons"	+ PersistedFacesQuery + "?userData=" + userData.replaceAll("\\s+", ""));
 
 			HttpPost request = new HttpPost(builder.build());
 			request.setHeader("Ocp-Apim-Subscription-Key", subscriptionKey);
@@ -140,6 +141,12 @@ public class FaceServiceImpl implements FaceService {
 	@Transactional
 	public Face getFaceById(int id) {
 		return this.faceDAO.getFaceById(id);
+	}
+
+	@Override
+	@Transactional
+	public Face getFaceByClientId(int id) {
+		return this.faceDAO.getFaceByClientId(id);
 	}
 
 }

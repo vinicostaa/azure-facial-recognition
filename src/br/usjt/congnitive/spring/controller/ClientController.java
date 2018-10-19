@@ -50,11 +50,24 @@ public class ClientController {
 		this.faceService = fs;
 	}
 	
-	@RequestMapping(value = "/clients", method = RequestMethod.GET)
-	public void listClients(Model model) {
-		model.addAttribute("client", new Client());
-		model.addAttribute("listClients", this.clientService.listClients());
-		//return "client";
+	@RequestMapping(value = "/client/list", method = RequestMethod.GET)
+	public @ResponseBody List<Client>  listClients() {
+		List<Client> clients = this.clientService.listClients();
+		for (Client client : clients) {
+			Set<Face> facesBanco = new HashSet<Face>();
+			Face face = this.faceService.getFaceByClientId(client.getId());
+			String base64 = "";
+			try {
+				base64 = DatatypeConverter.printBase64Binary(Files.readAllBytes(Paths.get(face.getPath())));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			face.setBase64image("data:image/png;base64,"+base64);
+			facesBanco.add(face);
+			client.setFace(facesBanco);
+		}
+		return clients;
 	}
 
 	//For add and update client both

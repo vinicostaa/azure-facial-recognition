@@ -17,4 +17,5 @@ public interface ClientService {
 	public void removeClient(int id);
 	
 	public Face getClientsByPersistedFaceId(String persistedFaceId);
+	
 }

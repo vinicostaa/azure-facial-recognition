@@ -14,5 +14,6 @@ public interface FaceService {
 	public Face AddFaceToFaceList( File imageStream, String userData);
 	
 	public Face getFaceById(int id);
-	
+
+	public Face getFaceByClientId(int id);
 }
