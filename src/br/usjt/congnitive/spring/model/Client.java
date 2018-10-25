@@ -39,9 +39,6 @@ public class Client {
 	
 	private String email;
 	
-//	@OneToMany(mappedBy = "cliente", targetEntity = Face.class, fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-//	private List<Face>  face;
-	
 	@OneToMany(mappedBy="cliente", fetch = FetchType.LAZY)
 	@JsonIgnore
     private Set<Face> faces;

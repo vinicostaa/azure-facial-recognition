@@ -1,12 +1,17 @@
 package br.usjt.congnitive.spring.model;
 
+import java.util.ArrayList;
+import java.util.Set;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
@@ -21,17 +26,18 @@ public class Face {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 
-	private String persistedFaceId;
+	private String personId;
 	
 	private String path;
-	
-	@Transient
-	private double confidence;
 
 	@ManyToOne
 	@JoinColumn(name = "cliente_id", nullable = false)
 	@JsonIgnore
 	private Client cliente;
+	
+	@OneToMany(mappedBy="persistedfaceid", fetch = FetchType.LAZY)
+	@JsonIgnore
+    private Set<PersistedFaceIds> persistedfaceids;
 
 	@Transient
 	private String base64image;
@@ -39,22 +45,72 @@ public class Face {
 	@Transient
 	private String faceId;
 	
+	private String userData;
+	
+	private String name;
+	
+	@Transient
+	private String persistedFaceId;
+	
+	@Transient
+	private ArrayList<Candidates> candidates;
 	
 	
+	public ArrayList<Candidates> getCantidates() {
+		return candidates;
+	}
+
+	public void setCantidates(ArrayList<Candidates> cantidates) {
+		this.candidates = cantidates;
+	}
+
+	public Set<PersistedFaceIds> getPersistedfaceids() {
+		return persistedfaceids;
+	}
+
+	public void setPersistedfaceids(Set<PersistedFaceIds> persistedfaceids) {
+		this.persistedfaceids = persistedfaceids;
+	}
+
+	public String getPersistedFaceId() {
+		return persistedFaceId;
+	}
+
+	public void setPersistedFaceId(String persistedFaceId) {
+		this.persistedFaceId = persistedFaceId;
+	}
+
+
+	public String getPersonId() {
+		return personId;
+	}
+
+	public void setPersonId(String personId) {
+		this.personId = personId;
+	}
+
+	public String getUserData() {
+		return userData;
+	}
+
+	public void setUserData(String userData) {
+		this.userData = userData;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
 	public String getPath() {
 		return path;
 	}
 
 	public void setPath(String path) {
 		this.path = path;
-	}
-
-	public double getConfidence() {
-		return confidence;
-	}
-
-	public void setConfidence(double confidence) {
-		this.confidence = confidence;
 	}
 
 	public String getFaceId() {
@@ -79,14 +135,6 @@ public class Face {
 
 	public void setId(int id) {
 		this.id = id;
-	}
-
-	public String getPersistedFaceId() {
-		return persistedFaceId;
-	}
-
-	public void setPersistedFaceId(String persistedFaceId) {
-		this.persistedFaceId = persistedFaceId;
 	}
 
 	public String getBase64image() {

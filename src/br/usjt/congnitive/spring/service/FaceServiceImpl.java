@@ -28,11 +28,14 @@ public class FaceServiceImpl implements FaceService {
 
 	private final String DEFAULT_API_ROOT = "https://brazilsouth.api.cognitive.microsoft.com/face/v1.0";
 	private final String FindSimilarsQuery = "findsimilars";
-	private final String personGroupId = "pi-grupo-2-usjt";
+	private final String personGroupId = "usjt-pi";
 	private final String DetectQuery = "detect";
 	private final String FaceListsQuery = "facelists";
 	private final String PersistedFacesQuery = "persistedfaces";
 	private final String subscriptionKey = "849ef8884bb04ca48e71abb5af9d5541";
+	private final String PersonGroupsQuery = "persongroups";
+	private final String PersonsQuery = "persons";
+	private final String IdentifyQuery = "identify";
 	
 	private FaceDAO faceDAO;
 	
@@ -41,6 +44,48 @@ public class FaceServiceImpl implements FaceService {
 		this.faceDAO = faceDAO;
 	}
 
+	
+	@Override
+	public ArrayList<Face> Identify(ArrayList<String> faceIds) {
+		HttpClient httpclient = HttpClients.createDefault();
+
+		try {
+			// Parameters and Headers
+			URIBuilder builder = new URIBuilder(DEFAULT_API_ROOT + "/" + IdentifyQuery);
+			HttpPost request = new HttpPost(builder.build());
+			request.setHeader("Ocp-Apim-Subscription-Key", subscriptionKey);
+			request.addHeader("content-type", "application/json");
+
+			// Request body
+			JSONObject json = new JSONObject();
+			json.put("confidenceThreshold", 0.5f);
+			json.put("faceIds", faceIds);
+			json.put("personGroupId", this.personGroupId);
+			json.put("maxNumOfCandidatesReturned", 1);
+
+			StringEntity params = new StringEntity(json.toString());
+
+			request.setEntity(params);
+
+			HttpEntity entity = httpclient.execute(request).getEntity();
+
+			if (entity != null) {
+				String jsonResult = EntityUtils.toString(entity);
+				System.out.println(jsonResult);
+				Type listType = new TypeToken<List<Face>>() {
+				}.getType();
+				ArrayList<Face> faces = new Gson().fromJson(jsonResult, listType);
+				return faces;
+			}
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+			return null;
+		}
+
+		return null;
+	}
+	
+	
 	@Override
 	public String Detect(File imageStream, boolean returnFaceId, boolean returnFaceLandmarks) {
 		HttpClient httpclient = HttpClients.createDefault();
@@ -107,7 +152,79 @@ public class FaceServiceImpl implements FaceService {
 
 		return null;
 	}
+	
+	@Override
+	public Face AddPersonFaceInPersonGroupAsync(String personId, String userData, File imageStream ) {
+		String query = this.DEFAULT_API_ROOT + "/" + this.PersonGroupsQuery + "/" + personGroupId + "/" + this.PersonsQuery + 
+				"/" + personId + "/" + PersistedFacesQuery + "?userData=" + userData.replaceAll("\\s+", "");
+		
+		HttpClient httpclient = HttpClients.createDefault();
+		
+	
 
+		try {
+			// Parameters and Headers
+			URIBuilder builder = new URIBuilder(query);
+
+			HttpPost request = new HttpPost(builder.build());
+			request.setHeader("Ocp-Apim-Subscription-Key", subscriptionKey);
+
+			// Request body
+			request.setEntity(new FileEntity(imageStream, ContentType.APPLICATION_OCTET_STREAM));
+
+			HttpEntity entity = httpclient.execute(request).getEntity();
+
+			if (entity != null) {
+				String json = EntityUtils.toString(entity);
+				System.out.println(json);
+				Face c = new Gson().fromJson(json, Face.class);
+				return c;
+			}
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+
+		return null;
+	}
+
+	@Override
+	public Face CreatePersonGroup(String name, String userData) {
+		String url = this.DEFAULT_API_ROOT + "/" + PersonGroupsQuery + "/" + personGroupId + "/" + PersonsQuery;
+		
+		HttpClient httpclient = HttpClients.createDefault();
+
+		try {
+			// Parameters and Headers
+			URIBuilder builder = new URIBuilder(url);
+			HttpPost request = new HttpPost(builder.build());
+			request.setHeader("Ocp-Apim-Subscription-Key", subscriptionKey);
+			request.addHeader("content-type", "application/json");
+
+			// Request body
+			JSONObject json = new JSONObject();
+			json.put("name", name);
+			json.put("userData", userData);
+
+			StringEntity params = new StringEntity(json.toString());
+
+			request.setEntity(params);
+ 
+			HttpEntity entity = httpclient.execute(request).getEntity();
+
+			if (entity != null) {
+				String jsonResult = EntityUtils.toString(entity);
+				System.out.println(jsonResult);
+				Face c = new Gson().fromJson(jsonResult, Face.class);
+				return c;
+			}
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+
+		return null;
+		
+	}
+	
 	@Override
 	public Face AddFaceToFaceList(File imageStream, String userData) {
 		HttpClient httpclient = HttpClients.createDefault();

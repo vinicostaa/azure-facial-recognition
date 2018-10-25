@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import br.usjt.congnitive.spring.model.Client;
 import br.usjt.congnitive.spring.model.Face;
+import br.usjt.congnitive.spring.model.PersistedFaceIds;
 
 public class ClientDAOImpl implements ClientDAO {
 	
@@ -22,15 +23,17 @@ public class ClientDAOImpl implements ClientDAO {
 	}
 
 	@Override
-	public void addClientFace(Client c, Face f) {
+	public void addClientFace(Client c, Face f, PersistedFaceIds p) {
 		Session session = this.sessionFactory.getCurrentSession();
 		
 		
 		session.save(c);
 		session.save(f);
+		session.save(p);
 			
-		logger.info("Client saved successfully, Client Details=" + c);
-		logger.info("Face saved successfully, Face Details=" + f);
+		System.out.println("Client saved successfully, Client Details=" + c);
+		System.out.println("Face saved successfully, Face Details=" + f);
+		System.out.println("PersistedFaceIds saved successfully, PersistedFaceIds Details=" + p);
 	}
 
 	@Override
@@ -70,10 +73,10 @@ public class ClientDAOImpl implements ClientDAO {
 	}
 
 	@Override
-	public Face getClientsByPersistedFaceId(String persistedFaceId) {
+	public Face getClientsByPersonId(String personId) {
 		Session session = this.sessionFactory.getCurrentSession();
-		Query query = session.createQuery("from Face where persistedFaceId = :id ");
-		query.setParameter("id", persistedFaceId);
+		Query query = session.createQuery("from Face where personId = :id ");
+		query.setParameter("id", personId);
 		List<Face> listFaces = query.list();
 		if(listFaces.size() > 0) {
 			return listFaces.get(0);

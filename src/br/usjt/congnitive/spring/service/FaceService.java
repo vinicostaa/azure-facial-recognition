@@ -1,6 +1,7 @@
 package br.usjt.congnitive.spring.service;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import br.usjt.congnitive.spring.model.Client;
@@ -16,4 +17,10 @@ public interface FaceService {
 	public Face getFaceById(int id);
 
 	public Face getFaceByClientId(int id);
+
+	public Face AddPersonFaceInPersonGroupAsync(String personId, String userData, File imageStream);
+
+	public ArrayList<Face> Identify(ArrayList<String> faceIds);
+
+	public Face CreatePersonGroup(String name, String userData);
 }

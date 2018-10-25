@@ -4,10 +4,11 @@ import java.util.List;
 
 import br.usjt.congnitive.spring.model.Client;
 import br.usjt.congnitive.spring.model.Face;
+import br.usjt.congnitive.spring.model.PersistedFaceIds;
 
 public interface ClientDAO {
 	
-	public void addClientFace(Client c, Face f);
+	public void addClientFace(Client c, Face f, PersistedFaceIds p);
 	
 	public void updateClient(Client c);
 	
@@ -17,6 +18,6 @@ public interface ClientDAO {
 	
 	public void removeClient(int id);
 	
-	public Face getClientsByPersistedFaceId(String persistedFaceId);
+	public Face getClientsByPersonId(String personId);
 
 }

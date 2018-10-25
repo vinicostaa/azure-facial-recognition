@@ -4,9 +4,10 @@ import java.util.List;
 
 import br.usjt.congnitive.spring.model.Client;
 import br.usjt.congnitive.spring.model.Face;
+import br.usjt.congnitive.spring.model.PersistedFaceIds;
 
 public interface ClientService {
-	public void addClientFace(Client p, Face f);
+	public void addClientFace(Client c, Face f, PersistedFaceIds p);
 	
 	public void updateClient(Client p);
 	
@@ -16,6 +17,6 @@ public interface ClientService {
 	
 	public void removeClient(int id);
 	
-	public Face getClientsByPersistedFaceId(String persistedFaceId);
+	public Face getClientsByPersonId(String persistedFaceId);
 	
 }
