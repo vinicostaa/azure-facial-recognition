@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.google.gson.Gson;
 
+import br.usjt.congnitive.spring.model.Candidates;
 import br.usjt.congnitive.spring.model.Client;
 import br.usjt.congnitive.spring.model.Face;
 import br.usjt.congnitive.spring.model.PersistedFaceIds;
@@ -126,29 +127,35 @@ public class ClientController {
 				f = faceAsIterator.next();
 			}
 
-			String base64Image = f.getBase64image().split(",")[1];
-
-			byte[] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(base64Image);
-			String path = "C:\\\\Projects\\\\faces-azure\\\\" + c.getCpf() + ".jpg";
-			Path destinationFile = Paths.get(path);
-
+			
+			Face faceCreate = this.faceService.CreatePersonGroup(c.getNome(), c.getEmail());
+			
+			Face faceAdd = new Face();
+			String clientsPaths = "";
+			
 			try {
 				// salvando
-				Files.write(destinationFile, imageBytes);
-			} catch (IOException e) {
+				int index = 0;
+				for (String base64Image: f.getBase64image()) {
+					index++;
+					byte[] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(base64Image.split(",")[1]);
+					String path = "C:\\\\Projects\\\\faces-azure\\\\" + c.getCpf() + "-"+ index + ".jpg";
+					clientsPaths += path + "|"; 
+					Path destinationFile = Paths.get(path);
+					Files.write(destinationFile, imageBytes);
+					faceAdd = this.faceService.AddPersonFaceInPersonGroupAsync(faceCreate.getPersonId(), c.getNome(),
+							new File(path));
+				}
+				
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 			
-			Face faceCreate = this.faceService.CreatePersonGroup(c.getNome(), c.getEmail());
-
-			Face faceAdd = this.faceService.AddPersonFaceInPersonGroupAsync(faceCreate.getPersonId(), c.getNome(),
-					new File(path));
-
 			f.setPersonId(faceCreate.getPersonId());
 			f.setName(c.getNome());
 			f.setUserData(c.getEmail());
 			f.setCliente(c);
-			f.setPath(path);
+			f.setPath(clientsPaths);
 
 			p.setFace(f);
 			p.setPersistedfaceid(faceAdd.getPersistedFaceId());
@@ -156,11 +163,13 @@ public class ClientController {
 			if (c.getId() == 0) {
 				// new client, add it
 				this.clientService.addClientFace(c, f, p);
+				this.faceService.train();
 			} else {
 				// existing client, call update
 				this.clientService.updateClient(c);
 			}
 		} catch (Exception e) {
+			e.printStackTrace();
 			return null;
 		}
 
@@ -169,10 +178,9 @@ public class ClientController {
 
 	@RequestMapping(value = "/client/detect", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody List<Client> detectClient(@RequestBody String json) {
-
 		Face f = new Gson().fromJson(json, Face.class);
 
-		String base64Image = f.getBase64image().split(",")[1];
+		String base64Image = f.getBase64image().get(0).split(",")[1];
 		byte[] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(base64Image);
 		String path = "C:\\Projects\\faces-azure\\myImage.jpg";
 		Path destinationFile = Paths.get(path);
@@ -192,20 +200,32 @@ public class ClientController {
 //			
 //			
 			for (Face face : faces) {
-				Set<Face> facesBanco = new HashSet<Face>();
-				Face faceBanco = new Face();
-				faceBanco = this.clientService.getClientsByPersonId(face.getCantidates().get(0).getPersonId());
-				if(faceBanco == null) {
-					continue;
+				for (Candidates candidates : face.getCantidates()) {
+					Set<Face> facesBanco = new HashSet<Face>();
+					Face faceBanco = new Face();
+					faceBanco = this.clientService.getClientsByPersonId(candidates.getPersonId());
+					if(faceBanco == null) {
+						continue;
+					}
+					ArrayList<Candidates> listaCandidates = new ArrayList<>();
+					listaCandidates.add(candidates);
+					faceBanco.setCantidates(listaCandidates);
+					//faceBanco.setCantidates(face.getCantidates());
+//					faceBanco.setConfidence(face.getConfidence());
+					String[] imagesPaths = faceBanco.getPath().split("\\|");
+					ArrayList<String> bases64images = new ArrayList<String>();
+					for (String imagePath: imagesPaths) {
+						String base64 = "data:image/png;base64," + DatatypeConverter.printBase64Binary(Files.readAllBytes(Paths.get(imagePath)));
+						bases64images.add(base64);
+						faceBanco.setBase64image(bases64images);
+						facesBanco.add(faceBanco);
+					}
+					
+					Client client = this.clientService.getClientById(faceBanco.getCliente().getId());
+					client.setFace(facesBanco);
+					clients.add(client);
 				}
-				faceBanco.setCantidates(face.getCantidates());
-//				faceBanco.setConfidence(face.getConfidence());
-				String base64 = DatatypeConverter.printBase64Binary(Files.readAllBytes(Paths.get(faceBanco.getPath())));
-				faceBanco.setBase64image("data:image/png;base64,"+base64);
-				Client client = this.clientService.getClientById(faceBanco.getCliente().getId());
-				facesBanco.add(faceBanco);
-				client.setFace(facesBanco);
-				clients.add(client);
+
 			}
 			
  			return clients;

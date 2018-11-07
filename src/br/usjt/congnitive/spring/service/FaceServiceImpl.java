@@ -2,6 +2,7 @@ package br.usjt.congnitive.spring.service;
 
 import java.io.File;
 import java.lang.reflect.Type;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,11 +10,14 @@ import javax.transaction.Transactional;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
@@ -61,7 +65,7 @@ public class FaceServiceImpl implements FaceService {
 			json.put("confidenceThreshold", 0.5f);
 			json.put("faceIds", faceIds);
 			json.put("personGroupId", this.personGroupId);
-			json.put("maxNumOfCandidatesReturned", 1);
+			json.put("maxNumOfCandidatesReturned", 10);
 
 			StringEntity params = new StringEntity(json.toString());
 
@@ -264,6 +268,32 @@ public class FaceServiceImpl implements FaceService {
 	@Transactional
 	public Face getFaceByClientId(int id) {
 		return this.faceDAO.getFaceByClientId(id);
+	}
+
+
+	@Override
+	public boolean train() {
+		CloseableHttpClient httpclient = HttpClients.createDefault();
+
+		try {
+			// Parameters and Headers
+			String url = DEFAULT_API_ROOT + "/" + PersonGroupsQuery + "/" + personGroupId + "/train";
+			URI uri = new URIBuilder(url)
+		            .build();
+
+			HttpPost request = new HttpPost(uri);
+			request.setHeader("Ocp-Apim-Subscription-Key", subscriptionKey);
+			CloseableHttpResponse response = httpclient.execute(request);
+		
+
+			return true;
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		return false;
+		
 	}
 
 }

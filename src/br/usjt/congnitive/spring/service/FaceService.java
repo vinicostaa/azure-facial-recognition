@@ -23,4 +23,6 @@ public interface FaceService {
 	public ArrayList<Face> Identify(ArrayList<String> faceIds);
 
 	public Face CreatePersonGroup(String name, String userData);
+	
+	public boolean train();
 }

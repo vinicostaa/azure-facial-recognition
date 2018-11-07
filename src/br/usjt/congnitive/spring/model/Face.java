@@ -40,7 +40,7 @@ public class Face {
     private Set<PersistedFaceIds> persistedfaceids;
 
 	@Transient
-	private String base64image;
+	private ArrayList<String> base64image;
 	
 	@Transient
 	private String faceId;
@@ -137,11 +137,11 @@ public class Face {
 		this.id = id;
 	}
 
-	public String getBase64image() {
+	public ArrayList<String> getBase64image() {
 		return base64image;
 	}
 
-	public void setBase64image(String base64image) {
+	public void setBase64image(ArrayList<String> base64image) {
 		this.base64image = base64image;
 	}
 }
