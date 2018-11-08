@@ -181,6 +181,10 @@ public class ClientController {
 				}
 			}
 			
+			if(clients.size() <= 0) {
+				return null;
+			}
+			
  			return clients;
 		} catch (IOException e) {
 			e.printStackTrace();
