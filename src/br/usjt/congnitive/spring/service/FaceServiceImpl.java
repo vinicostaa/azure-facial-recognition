@@ -11,7 +11,6 @@ import javax.transaction.Transactional;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.ContentType;
@@ -34,7 +33,6 @@ public class FaceServiceImpl implements FaceService {
 	private final String FindSimilarsQuery = "findsimilars";
 	private final String personGroupId = "usjt-pi";
 	private final String DetectQuery = "detect";
-	private final String FaceListsQuery = "facelists";
 	private final String PersistedFacesQuery = "persistedfaces";
 	private final String subscriptionKey = "849ef8884bb04ca48e71abb5af9d5541";
 	private final String PersonGroupsQuery = "persongroups";
@@ -276,7 +274,6 @@ public class FaceServiceImpl implements FaceService {
 		CloseableHttpClient httpclient = HttpClients.createDefault();
 
 		try {
-			// Parameters and Headers
 			String url = DEFAULT_API_ROOT + "/" + PersonGroupsQuery + "/" + personGroupId + "/train";
 			URI uri = new URIBuilder(url)
 		            .build();
@@ -289,7 +286,6 @@ public class FaceServiceImpl implements FaceService {
 			return true;
 			
 		} catch (Exception e) {
-			// TODO: handle exception
 			e.printStackTrace();
 		}
 		return false;

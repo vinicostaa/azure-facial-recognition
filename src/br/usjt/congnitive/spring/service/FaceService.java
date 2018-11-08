@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import br.usjt.congnitive.spring.model.Client;
 import br.usjt.congnitive.spring.model.Face;
 
 public interface FaceService {

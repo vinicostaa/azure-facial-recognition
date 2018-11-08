@@ -54,6 +54,7 @@ public class ClientController {
 
 	@RequestMapping(value = "/client/list", method = RequestMethod.GET)
 	public @ResponseBody List<Client> listClients() {
+		System.out.println(System.getProperty("catalina.base"));
 		List<Client> clients = this.clientService.listClients();
 		for (Client client : clients) {
 			Set<Face> facesBanco = new HashSet<Face>();
@@ -65,7 +66,6 @@ public class ClientController {
 				try {
 					base64 = "data:image/png;base64," + DatatypeConverter.printBase64Binary(Files.readAllBytes(Paths.get(imagePath)));
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				bases64images.add(base64);
@@ -76,47 +76,6 @@ public class ClientController {
 		}
 		return clients;
 	}
-//
-//	//For add and update client both
-//	@RequestMapping(value= "/client/add", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
-//	public String addClient(@RequestBody String json){
-//		
-//		Client c = new Gson().fromJson(json, Client.class); 
-//		Face f = new Face();
-//
-//        Iterator<Face> carrosAsIterator = c.getFace().iterator();
-//        while (carrosAsIterator.hasNext()){
-//               f = carrosAsIterator.next();
-//        }
-//        
-//		String base64Image = f.getBase64image().split(",")[1];
-//		
-//		byte[] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(base64Image);
-//		String path = "C:\\\\Projects\\\\faces-azure\\\\"+ c.getCpf() +".jpg";
-//		Path destinationFile = Paths.get(path);
-//		
-//		try {
-//			//salvando
-//			Files.write(destinationFile, imageBytes);
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
-//		
-//		Face faceAzure = this.faceService.AddFaceToFaceList(new File(path), c.getNome());
-//		f.setPersistedFaceId(faceAzure.getPersistedFaceId());
-//		f.setCliente(c);
-//		f.setPath(path);
-//		
-//		if(c.getId() == 0){
-//			//new client, add it
-//			this.clientService.addClientFace(c, f);
-//		}else{
-//			//existing client, call update
-//			this.clientService.updateClient(c);
-//		}
-//		
-//		return json;
-//	}
 
 	// For add and update client both
 	@RequestMapping(value = "/client/add", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -139,12 +98,11 @@ public class ClientController {
 			String clientsPaths = "";
 			
 			try {
-				// salvando
 				int index = 0;
 				for (String base64Image: f.getBase64image()) {
 					index++;
 					byte[] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(base64Image.split(",")[1]);
-					String path = "C:\\\\Projects\\\\faces-azure\\\\" + c.getCpf() + "-"+ index + ".jpg";
+					String path = System.getProperty("catalina.base") + "\\\\faces-azure\\\\" + c.getCpf() + "-"+ index + ".jpg";
 					clientsPaths += path + "|"; 
 					Path destinationFile = Paths.get(path);
 					Files.write(destinationFile, imageBytes);
@@ -195,15 +153,9 @@ public class ClientController {
 			String faceId = this.faceService.Detect(new File(path), true, false);
 			ArrayList<String> facesIds = new ArrayList<String>();
 			facesIds.add(faceId);
-
-			// Call Identify
 			ArrayList<Face> faces = this.faceService.Identify(facesIds);
-
-			// Chamar FindSimilar
-//			List<Face> facesFindSimilar = this.faceService.FindSimilar(faceId, 10);
 			List<Client> clients = new ArrayList<Client>();
-//			
-//			
+	
 			for (Face face : faces) {
 				for (Candidates candidates : face.getCantidates()) {
 					Set<Face> facesBanco = new HashSet<Face>();
@@ -215,8 +167,6 @@ public class ClientController {
 					ArrayList<Candidates> listaCandidates = new ArrayList<>();
 					listaCandidates.add(candidates);
 					faceBanco.setCantidates(listaCandidates);
-					//faceBanco.setCantidates(face.getCantidates());
-//					faceBanco.setConfidence(face.getConfidence());
 					String[] imagesPaths = faceBanco.getPath().split("\\|");
 					ArrayList<String> bases64images = new ArrayList<String>();
 					for (String imagePath: imagesPaths) {
@@ -225,17 +175,14 @@ public class ClientController {
 						faceBanco.setBase64image(bases64images);
 						facesBanco.add(faceBanco);
 					}
-					
 					Client client = this.clientService.getClientById(faceBanco.getCliente().getId());
 					client.setFace(facesBanco);
 					clients.add(client);
 				}
-
 			}
 			
  			return clients;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -244,16 +191,13 @@ public class ClientController {
 
 	@RequestMapping("/remove/{id}")
 	public void removeClient(@PathVariable("id") int id) {
-
 		this.clientService.removeClient(id);
-		// return "redirect:/clients";
 	}
 
 	@RequestMapping("/edit/{id}")
 	public void editClient(@PathVariable("id") int id, Model model) {
 		model.addAttribute("client", this.clientService.getClientById(id));
 		model.addAttribute("listClients", this.clientService.listClients());
-		// return "client";
 	}
 
 }
