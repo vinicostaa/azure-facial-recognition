@@ -58,16 +58,21 @@ public class ClientController {
 		for (Client client : clients) {
 			Set<Face> facesBanco = new HashSet<Face>();
 			Face face = this.faceService.getFaceByClientId(client.getId());
-			String base64 = "";
-			try {
-				base64 = DatatypeConverter.printBase64Binary(Files.readAllBytes(Paths.get(face.getPath())));
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			String[] imagesPaths = face.getPath().split("\\|");
+			ArrayList<String> bases64images = new ArrayList<String>();
+			for (String imagePath: imagesPaths) {
+				String base64 = "";
+				try {
+					base64 = "data:image/png;base64," + DatatypeConverter.printBase64Binary(Files.readAllBytes(Paths.get(imagePath)));
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				bases64images.add(base64);
+				face.setBase64image(bases64images);
+				facesBanco.add(face);
+				client.setFace(facesBanco);
 			}
-			face.setBase64image("data:image/png;base64," + base64);
-			facesBanco.add(face);
-			client.setFace(facesBanco);
 		}
 		return clients;
 	}
