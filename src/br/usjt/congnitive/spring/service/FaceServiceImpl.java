@@ -46,7 +46,12 @@ public class FaceServiceImpl implements FaceService {
 		this.faceDAO = faceDAO;
 	}
 
-	
+	/**
+	Identifica atráves do faceId se a face está cadastrada na lista (usjt-pi)
+	@param faceIds - lista de facesIds que serão identificadas pela Azure
+	@return Lista de faces indentificadas
+	@author Grupo 2
+	*/
 	@Override
 	public ArrayList<Face> Identify(ArrayList<String> faceIds) {
 		HttpClient httpclient = HttpClients.createDefault();
@@ -87,7 +92,13 @@ public class FaceServiceImpl implements FaceService {
 		return null;
 	}
 	
-	
+	/**
+	Realizada a leitura do rosto e retorna um faceId para ela
+	@param imageStream - Foto a ser detectada
+	@param returnFaceId - A azure deve retornar o faceId
+	@return FaceId da Foto.
+	@author Grupo 2
+	*/
 	@Override
 	public String Detect(File imageStream, boolean returnFaceId, boolean returnFaceLandmarks) {
 		HttpClient httpclient = HttpClients.createDefault();
@@ -116,6 +127,13 @@ public class FaceServiceImpl implements FaceService {
 		return null;
 	}
 
+	/**
+	Procura por rostos similares.
+	@param faceId - faceId da foto a ser detectada.
+	@param maxNumOfCandidatesReturned - O máximo de canditados que a azure deve retornar
+	@return Faces detectas.
+	@author Grupo 2
+	*/
 	@Override
 	public List<Face> FindSimilar(String faceId, int maxNumOfCandidatesReturned) {
 		HttpClient httpclient = HttpClients.createDefault();
@@ -155,6 +173,14 @@ public class FaceServiceImpl implements FaceService {
 		return null;
 	}
 	
+	/**
+	Adiciona Face a um grupo de faces, onde cada pessoa representa um grupo de faces.
+	@param personId - personId do grupo de Person
+	@param userData - Descicao da Face
+	@param imageStream - A foto a ser adiconada
+	@return Retorna face cadastrada.
+	@author Grupo 2
+	*/
 	@Override
 	public Face AddPersonFaceInPersonGroupAsync(String personId, String userData, File imageStream ) {
 		String query = this.DEFAULT_API_ROOT + "/" + this.PersonGroupsQuery + "/" + personGroupId + "/" + this.PersonsQuery + 
@@ -189,6 +215,13 @@ public class FaceServiceImpl implements FaceService {
 		return null;
 	}
 
+	/**
+	Cria um grupo de faces.
+	@param name - nome da pessoa 
+	@param userData - Descicao da pessoa
+	@return Retorna o id do PersonGroup criada.
+	@author Grupo 2
+	*/
 	@Override
 	public Face CreatePersonGroup(String name, String userData) {
 		String url = this.DEFAULT_API_ROOT + "/" + PersonGroupsQuery + "/" + personGroupId + "/" + PersonsQuery;
@@ -227,6 +260,7 @@ public class FaceServiceImpl implements FaceService {
 		
 	}
 	
+	
 	@Override
 	public Face AddFaceToFaceList(File imageStream, String userData) {
 		HttpClient httpclient = HttpClients.createDefault();
@@ -256,19 +290,34 @@ public class FaceServiceImpl implements FaceService {
 		return null;
 	}
 
+	/**
+	Retorna Face pelo seu Id
+	@param id - id Face 
+	@return Retorna Face encontrada.
+	@author Grupo 2
+	*/
 	@Override
 	@Transactional
 	public Face getFaceById(int id) {
 		return this.faceDAO.getFaceById(id);
 	}
 
+	/**
+	Retorna Face pelo seu ClienteId
+	@param id - idCliente Face 
+	@return Retorna Face encontrada.
+	@author Grupo 2
+	*/
 	@Override
 	@Transactional
 	public Face getFaceByClientId(int id) {
 		return this.faceDAO.getFaceByClientId(id);
 	}
 
-
+	/**
+	Treina a api da Azure para detectar os rostos.
+	@author Grupo 2
+	*/
 	@Override
 	public boolean train() {
 		CloseableHttpClient httpclient = HttpClients.createDefault();

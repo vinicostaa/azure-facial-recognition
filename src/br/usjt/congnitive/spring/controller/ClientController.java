@@ -33,12 +33,20 @@ import br.usjt.congnitive.spring.model.PersistedFaceIds;
 import br.usjt.congnitive.spring.service.ClientService;
 import br.usjt.congnitive.spring.service.FaceService;
 
+/**
+ * Classe para objetos do tipo Cliente Controller, onde será contidos, valores,
+ * métodos, construtores e atributos.
+ * 
+ * @param ClientService
+ * @param FaceService
+ * @param List<Face>
+ * @autor Grupo 2
+ */
 @RestController
 public class ClientController {
 
 	private ClientService clientService;
 	private FaceService faceService;
-	private List<Face> facesBanco;
 
 	@Autowired(required = true)
 	@Qualifier(value = "clientService")
@@ -52,6 +60,18 @@ public class ClientController {
 		this.faceService = fs;
 	}
 
+	/**
+	 * Método para listar o cliente encontrado no banco de dados MySQL.
+	 * 
+	 * @param listclientes - listar clintes do banco.
+	 * @see Client.java - está referenciando a classe Client da model.
+	 * @see ClientService.java - está referenciando a classe ClientService da
+	 *      service.
+	 * @return retorna os dados do cliente encontrado no banco de dados.
+	 * @autor Grupo 2
+	 * @throw IOException - informar se o método recebe erros de entrada e saida na
+	 *        leitura das imagens.
+	 */
 	@RequestMapping(value = "/client/list", method = RequestMethod.GET)
 	public @ResponseBody List<Client> listClients() {
 		System.out.println(System.getProperty("catalina.base"));
@@ -61,10 +81,11 @@ public class ClientController {
 			Face face = this.faceService.getFaceByClientId(client.getId());
 			String[] imagesPaths = face.getPath().split("\\|");
 			ArrayList<String> bases64images = new ArrayList<String>();
-			for (String imagePath: imagesPaths) {
+			for (String imagePath : imagesPaths) {
 				String base64 = "";
 				try {
-					base64 = "data:image/png;base64," + DatatypeConverter.printBase64Binary(Files.readAllBytes(Paths.get(imagePath)));
+					base64 = "data:image/png;base64,"
+							+ DatatypeConverter.printBase64Binary(Files.readAllBytes(Paths.get(imagePath)));
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -77,7 +98,15 @@ public class ClientController {
 		return clients;
 	}
 
-	// For add and update client both
+	/**
+	 * Método para adicionar ou atualizar o cliente.
+	 * 
+	 * @param addClient    - adicionar cliente
+	 * @param updateClient - atualizar o cliente
+	 * @see Client.java - está referenciando a classe cliente da model.
+	 * @return Json para converter o objeto para o formato adequado antes de retorna-lo
+	 * @autor Grupo 2
+	 */
 	@RequestMapping(value = "/client/add", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public String addClient(@RequestBody String json) {
 
@@ -91,29 +120,29 @@ public class ClientController {
 				f = faceAsIterator.next();
 			}
 
-			
 			Face faceCreate = this.faceService.CreatePersonGroup(c.getNome(), c.getEmail());
-			
+
 			Face faceAdd = new Face();
 			String clientsPaths = "";
-			
+
 			try {
 				int index = 0;
-				for (String base64Image: f.getBase64image()) {
+				for (String base64Image : f.getBase64image()) {
 					index++;
 					byte[] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(base64Image.split(",")[1]);
-					String path = System.getProperty("catalina.base") + "\\\\faces-azure\\\\" + c.getCpf() + "-"+ index + ".jpg";
-					clientsPaths += path + "|"; 
+					String path = System.getProperty("catalina.base") + File.separator + c.getCpf() + "-" + index
+							+ ".jpg";
+					clientsPaths += path + "|";
 					Path destinationFile = Paths.get(path);
 					Files.write(destinationFile, imageBytes);
 					faceAdd = this.faceService.AddPersonFaceInPersonGroupAsync(faceCreate.getPersonId(), c.getNome(),
 							new File(path));
 				}
-				
+
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			
+
 			f.setPersonId(faceCreate.getPersonId());
 			f.setName(c.getNome());
 			f.setUserData(c.getEmail());
@@ -139,13 +168,24 @@ public class ClientController {
 		return json;
 	}
 
+	/**
+	 * Método para detectar o cliente
+	 * 
+	 * @param detectClient - detectar o cliente atrávez de uma foto.
+	 * @see Client.java - está referenciando a classe cliente da model.
+	 * @return null - caso o cliente não seja detectado
+	 * @return clients - retorna o cliente detectado
+	 * @autor Grupo 2
+	 * @throw IOException - informar se o método recebe erros de entrada e saida na
+	 *        leitura das imagens.
+	 */
 	@RequestMapping(value = "/client/detect", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public @ResponseBody List<Client> detectClient(@RequestBody String json) {
 		Face f = new Gson().fromJson(json, Face.class);
 
 		String base64Image = f.getBase64image().get(0).split(",")[1];
 		byte[] imageBytes = javax.xml.bind.DatatypeConverter.parseBase64Binary(base64Image);
-		String path = "C:\\Projects\\faces-azure\\myImage.jpg";
+		String path = System.getProperty("catalina.base") + File.separator + "myImage.jpg";
 		Path destinationFile = Paths.get(path);
 
 		try {
@@ -155,13 +195,13 @@ public class ClientController {
 			facesIds.add(faceId);
 			ArrayList<Face> faces = this.faceService.Identify(facesIds);
 			List<Client> clients = new ArrayList<Client>();
-	
+
 			for (Face face : faces) {
 				for (Candidates candidates : face.getCantidates()) {
 					Set<Face> facesBanco = new HashSet<Face>();
 					Face faceBanco = new Face();
 					faceBanco = this.clientService.getClientsByPersonId(candidates.getPersonId());
-					if(faceBanco == null) {
+					if (faceBanco == null) {
 						continue;
 					}
 					ArrayList<Candidates> listaCandidates = new ArrayList<>();
@@ -169,8 +209,9 @@ public class ClientController {
 					faceBanco.setCantidates(listaCandidates);
 					String[] imagesPaths = faceBanco.getPath().split("\\|");
 					ArrayList<String> bases64images = new ArrayList<String>();
-					for (String imagePath: imagesPaths) {
-						String base64 = "data:image/png;base64," + DatatypeConverter.printBase64Binary(Files.readAllBytes(Paths.get(imagePath)));
+					for (String imagePath : imagesPaths) {
+						String base64 = "data:image/png;base64,"
+								+ DatatypeConverter.printBase64Binary(Files.readAllBytes(Paths.get(imagePath)));
 						bases64images.add(base64);
 						faceBanco.setBase64image(bases64images);
 						facesBanco.add(faceBanco);
@@ -180,12 +221,12 @@ public class ClientController {
 					clients.add(client);
 				}
 			}
-			
-			if(clients.size() <= 0) {
+
+			if (clients.size() <= 0) {
 				return null;
 			}
-			
- 			return clients;
+
+			return clients;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -193,6 +234,14 @@ public class ClientController {
 		return null;
 	}
 
+	/**
+	 * Método para remover o cliente
+	 * 
+	 * @param removeClient - remover o cliente
+	 * @see ClientSerice.java - está referenciando a classe cliente service da
+	 *      service.
+	 * @autor Grupo 2
+	 */
 	@RequestMapping("/remove/{id}")
 	public void removeClient(@PathVariable("id") int id) {
 		this.clientService.removeClient(id);

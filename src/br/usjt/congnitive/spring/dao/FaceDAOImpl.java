@@ -20,6 +20,12 @@ public class FaceDAOImpl implements FaceDAO {
 		this.sessionFactory = sf;
 	}
 	
+	/**
+	 * Busca a face do cliente atrávez do id
+	 * @param id - id da face a ser buscada
+	 * @return Retorna a face correspondente ao id
+	 * @author Grupo2
+	 */
 	@Override
 	public Face getFaceById(int id) {
 		Session session = this.sessionFactory.getCurrentSession();		
@@ -28,6 +34,11 @@ public class FaceDAOImpl implements FaceDAO {
 		return f;
 	}
 
+	/**
+	 * Busca Face atrávez do id do cliente
+	 * @param id - id do cliente 
+	 * @return Retorna a face do cliente
+	 */
 	@Override
 	public Face getFaceByClientId(int id) {
 		Session session = this.sessionFactory.getCurrentSession();
